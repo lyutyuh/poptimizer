@@ -1,0 +1,6 @@
+name: poptimizer
+channels:
+  - defaults
+dependencies:
+  - pip
+  - python=3.11
