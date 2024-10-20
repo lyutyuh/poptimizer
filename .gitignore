@@ -1,7 +1,5 @@
-nq-open-contriever-msmarco-retrieved-documents.jsonl.gz
-
+# ignoring files in the root directory
 *.out
-example_multi_qa.json
 eval
 playground/
 output/
