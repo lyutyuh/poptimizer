@@ -7,6 +7,7 @@ This repository contains the code for the paper "Likelihood as a performance gau
 ## Table of Contents
 
 - [Install the package](#install-the-package)
+- [Example Usage](#example-usage)
 
 
 
@@ -29,3 +30,30 @@ conda activate poptimizer
 MAX_JOBS=4 pip install -e .
 ```
  
+## Example Usage
+
+```python
+from poptimizer.methods.doc_reordering import DocReorderingGauge
+from poptimizer.methods.base import RAGInstance
+model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
+# Initialize the gauge
+doc_reorder_gauge = DocReorderingGauge(
+    model_name,
+    top_p=1,
+    num_gpus=1,
+    gpu_memory_utilization=0.6,
+    max_prompt_length=4096,
+    torch_dtype=torch.bfloat16,
+    seed=42
+)
+instance = RAGInstance(
+    question="What is the capital of France?",
+    documents=["Paris is the capital of France.", "The capital of France is Paris.", "France's capital is Paris."],
+)
+
+optimized_instance = doc_reorder_gauge.optimize_instance(instance)
+response = doc_reorder_gauge.generation_with_instance(optimized_instance)
+```
+
+
+
