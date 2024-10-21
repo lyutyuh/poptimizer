@@ -49,7 +49,7 @@ class DocReorderingGauge(BaseGauge):
 
     def __init__(
         self, model_name,
-        top_p=0.9,
+        top_p=1,
         num_gpus=1,
         gpu_memory_utilization=0.6,
         max_prompt_length=4096,

@@ -25,11 +25,12 @@ class RAGInstance(ABC):
         self.question = question
         self.documents = documents
 
+    def __str__(self):
+        return f"Question: {self.question}\nDocuments: {self.documents}"
+
     def get_prompt(self) -> Tuple[str, Tuple[int, int]]:
         """
-        Return a tuple of (prompt, (start, end)) 
-        where start and end are the indices of the question in the prompt.
-        I.e. prompt[start:end] == question
+        Return a prompt constructed from the question and documents.
         """
         prompt, concatenated_documents = get_qa_prompt(
             self.question, self.documents)
