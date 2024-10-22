@@ -13,8 +13,8 @@ T = TypeVar("T")
 
 @dataclass(frozen=True)
 class Document:
-    title: str
     text: str
+    title: Optional[str] = None
     id: Optional[str] = None
     score: Optional[float] = None
     hasanswer: Optional[bool] = None
@@ -34,7 +34,7 @@ class Document:
         return cls(**dict(data, id=id, score=score))
 
 
-def verbalize_document(document: Document):
+def verbalize_document(document_index:int, document: Document):
     """
     Verbalize the document into a string.
     """
@@ -76,7 +76,7 @@ def get_qa_prompt(
     # Format the documents into strings
     formatted_documents = []
     for document_index, document in enumerate(documents):
-        formatted_documents.append(verbalize_document(document))
+        formatted_documents.append(verbalize_document(document_index, document))
     concatenated_documents = "\n".join(formatted_documents)
     prompt = prompt_template.format(question=question, search_results=concatenated_documents)
     return (prompt, concatenated_documents)

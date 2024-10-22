@@ -69,6 +69,7 @@ def format_chat_prompt(
     Using the default system prompt for the model if the model is not in the list.
     """
     if model_name in ["lmsys/longchat-13b-16k"]:
+        # Longchat models use vicuna template
         conv = get_conversation_template("vicuna")
     elif is_chat_model(model_name):
         try:
@@ -79,8 +80,7 @@ def format_chat_prompt(
             conv = None
     else:
         conv = None
-
-    if conv:
+    if conv is not None:
         conv.append_message(conv.roles[0], message)
         conv.append_message(conv.roles[1], answer_prompt + answer if append_answer else None)
         prompt = conv.get_prompt() + ("" if append_answer else (" " + answer_prompt[:-1]))
@@ -92,15 +92,13 @@ def format_chat_prompt(
 
 def get_logprobs(
     output,
-    prompt_length,
     question_start,
     question_end,
-    prompt_question_length,
-    prompt_question_answer_length,
-    gold_doc_start,
-    gold_doc_end,
     doc_token_starts,
     doc_token_ends,
+    prompt_length,
+    gold_doc_start=None,
+    gold_doc_end=None,
     answer_start=None,
     answer_end=None,
     **kwargs
@@ -118,8 +116,6 @@ def get_logprobs(
         prompt_length: length of the prompt
         question_start: start of the question in the prompt
         question_end: end of the question in the prompt
-        prompt_question_length: length of the prompt until the question
-        prompt_question_answer_length: length of the prompt until the answer
         gold_doc_start: start of the gold document in the prompt
         gold_doc_end: end of the gold document in the prompt
         doc_token_starts: list of start tokens of each document in the prompt

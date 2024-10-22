@@ -2,8 +2,18 @@ from typing import List, Dict
 from vllm import LLM, SamplingParams
 from collections import defaultdict
 
+import torch
 from poptimizer.methods.base import BaseGauge, RAGInstance
 from poptimizer.util import get_qa_prompt
+
+import logging
+from copy import deepcopy
+import numpy as np
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 
 def init_vllm(
@@ -25,7 +35,8 @@ def init_vllm(
         }
 
     logger.info(
-        f"Initializing model {model_name} with {num_gpus} GPUs with vllm")
+        f"Initializing model {model_name} with {num_gpus} GPUs with vllm"
+    )
     # Initialize vllm model
     model = LLM(
         model=model_name,
@@ -53,6 +64,7 @@ class DocReorderingGauge(BaseGauge):
         num_gpus=1,
         gpu_memory_utilization=0.6,
         max_prompt_length=4096,
+        max_new_tokens=100,
         torch_dtype=torch.bfloat16,
         seed=42
     ):
@@ -61,7 +73,11 @@ class DocReorderingGauge(BaseGauge):
             model: The pretrained language model that will be used to score prompts.
 
         """
-        self.model_name = model_name
+        super().__init__(
+            model_name=model_name,
+            top_p=top_p,
+            max_new_tokens=max_new_tokens
+        )
 
         self.num_gpus = num_gpus
         self.gpu_memory_utilization = gpu_memory_utilization
@@ -77,14 +93,8 @@ class DocReorderingGauge(BaseGauge):
             torch_dtype=torch_dtype,
             seed=seed
         )
-        self.sampling_params = SamplingParams(
-            temperature=0.0,
-            top_p=top_p,
-            max_tokens=1,
-            prompt_logprobs=0
-        )
 
-    def shuffle_documents(shuffle_id, instance):
+    def shuffle_documents(self, shuffle_id, instance):
         documents = deepcopy(instance.documents)
         if shuffle_id > 0:
             np.random.shuffle(documents)
@@ -143,6 +153,5 @@ class DocReorderingGauge(BaseGauge):
 
         return RAGInstance(
             question=instance.question,
-            documents=sorted_docs,
-            gold_index=gold_index
+            documents=sorted_docs
         )

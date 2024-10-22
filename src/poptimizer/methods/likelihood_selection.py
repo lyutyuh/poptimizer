@@ -1,6 +1,18 @@
+from typing import List, Dict
 from vllm import LLM, SamplingParams
+from collections import defaultdict
 
-from poptimizer.methods.base import BaseGauge
+import torch
+from poptimizer.methods.base import BaseGauge, RAGInstance
+from poptimizer.util import get_qa_prompt
+
+import logging
+from copy import deepcopy
+import numpy as np
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 
 class LikelihoodSelectionGauge(BaseGauge):
@@ -34,12 +46,6 @@ class LikelihoodSelectionGauge(BaseGauge):
             max_prompt_length=max_prompt_length,
             torch_dtype=torch_dtype,
             seed=seed
-        )
-        self.sampling_params = SamplingParams(
-            temperature=0.0,
-            top_p=top_p,
-            max_tokens=1,
-            prompt_logprobs=0
         )
 
 

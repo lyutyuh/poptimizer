@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from typing import List, Tuple
 
+from vllm import LLM, SamplingParams
+import torch
+from transformers import AutoTokenizer
 from fastchat.model import get_conversation_template, load_model
 from poptimizer.prompting import (
     Document,
@@ -56,7 +59,6 @@ def get_instance_metadata(
 
     prompt = format_chat_prompt(
         prompt,
-        answer=answer_string,
         model_name=model_name
     )
     total_length = len(tokenizer(prompt)["input_ids"])
@@ -66,9 +68,9 @@ def get_instance_metadata(
     char_to_token = get_char_to_token(
         tokenized_prompt, prompt, model_name=model_name)
 
-    doc_char_starts = [prompt.find(verbalize_document(doc))
+    doc_char_starts = [prompt.find(verbalize_document(i, doc))
                        for i, doc in enumerate(documents)]
-    doc_char_ends = [len(verbalize_document(doc))-1 +
+    doc_char_ends = [len(verbalize_document(i, doc))-1 +
                      doc_char_starts[i] for i, doc in enumerate(documents)]
 
     doc_token_starts = [char_to_token[start] for start in doc_char_starts]
@@ -90,20 +92,37 @@ def get_instance_metadata(
         "total_length": total_length,
         "first_doc_start": first_doc_start,
         "doc_token_starts": doc_token_starts,
-        "doc_token_ends": doc_token_ends
+        "doc_token_ends": doc_token_ends,
+        "prompt_length": total_length,
     }
 
     return instance_metadata
 
 
 class BaseGauge(ABC):
-    def __init__(self, model_name):
+    def __init__(self, model_name, top_p, max_new_tokens):
         """
         Args:
             model: The pretrained language model that will be used to score prompts.
 
         """
         self.model_name = model_name
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        
+        self.sampling_params = SamplingParams(
+            temperature=0.0,
+            top_p=1.0,
+            max_tokens=1,
+            prompt_logprobs=0
+        )
+
+        self.generation_params = SamplingParams(
+            temperature=1.0,
+            top_p=top_p,
+            max_tokens=max_new_tokens,
+            prompt_logprobs=0
+        )
+
 
     def logp_instances(self, instances):
         """
@@ -151,13 +170,14 @@ class BaseGauge(ABC):
         instance,
         prompt_type="ICQ"
     ):
-        prompt = get_qa_prompt(
+        prompt, concatenated_documents = get_qa_prompt(
             instance.question, instance.documents, prompt_type=prompt_type)
         prompt = format_chat_prompt(
             prompt, answer=None, model_name=self.model_name, append_answer=False
         )
+        print(prompt)
         raw_responses = self.model.generate(
-            [prompt], self.sampling_params, use_tqdm=False
+            [prompt], self.generation_params, use_tqdm=False
         )
 
         return raw_responses
