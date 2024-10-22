@@ -9,7 +9,7 @@ from poptimizer.prompting import (
 model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
 
 # Initialize the gauge
-doc_reorder_gauge = LikelihoodSelectionGauge(
+likelihood_gauge = LikelihoodSelectionGauge(
     model_name,
     top_p=1,
     num_gpus=1,
@@ -20,7 +20,6 @@ doc_reorder_gauge = LikelihoodSelectionGauge(
 )
 instance = RAGInstance(
     question="What is the capital of France?",
-    # documents=["Paris is the capital of France.", "The capital of France is Paris.", "France's capital is Paris."],
     documents=[
         Document(text="Paris is the capital of France."), 
         Document(text="The capital of France is Paris."),
@@ -28,10 +27,10 @@ instance = RAGInstance(
     ]
 )
 
-optimized_instance = doc_reorder_gauge.optimize_instance(instance)
+optimized_instance = likelihood_gauge.optimize_instance(instance)
 
 # print(optimized_instance)
 
-response = doc_reorder_gauge.generation_with_instance(optimized_instance)
+response = likelihood_gauge.generation_with_instance(optimized_instance)
 
 print(response)

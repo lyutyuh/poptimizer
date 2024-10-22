@@ -20,7 +20,6 @@ doc_reorder_gauge = DocReorderingGauge(
 )
 instance = RAGInstance(
     question="What is the capital of France?",
-    # documents=["Paris is the capital of France.", "The capital of France is Paris.", "France's capital is Paris."],
     documents=[
         Document(text="Paris is the capital of France."), 
         Document(text="The capital of France is Paris."),
