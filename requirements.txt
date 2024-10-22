@@ -16,7 +16,7 @@ black==22.10.0
 
 accelerate
 einops
-fschat@git+https://github.com/lm-sys/FastChat.git
+fschat@git+https://github.com/lm-sys/FastChat.git@7ca0d438db1b1945a22f924f4d393175fcd80b63
 triton
 vllm==0.6.3
 flash-attn==1.0.5
