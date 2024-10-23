@@ -33,9 +33,16 @@ MAX_JOBS=4 pip install -e .
 ## Example Usage
 
 ```python
+import torch
+
 from poptimizer.methods.doc_reordering import DocReorderingGauge
+from poptimizer.methods.likelihood_selection import LikelihoodSelectionGauge
 from poptimizer.methods.base import RAGInstance
+from poptimizer.prompting import (
+    Document
+)
 model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
+
 # Initialize the gauge
 doc_reorder_gauge = DocReorderingGauge(
     model_name,
@@ -48,11 +55,17 @@ doc_reorder_gauge = DocReorderingGauge(
 )
 instance = RAGInstance(
     question="What is the capital of France?",
-    documents=["Paris is the capital of France.", "The capital of France is Paris.", "France's capital is Paris."],
+    documents=[
+        Document(text="Paris is the capital of France."), 
+        Document(text="The capital of France is Paris."),
+        Document(text="France's capital is Paris.")
+    ]
 )
 
 optimized_instance = doc_reorder_gauge.optimize_instance(instance)
+
 response = doc_reorder_gauge.generation_with_instance(optimized_instance)
+print(response)
 ```
 
 
