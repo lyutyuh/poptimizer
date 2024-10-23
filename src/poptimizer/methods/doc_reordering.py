@@ -15,7 +15,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-
 def init_vllm(
     model_name,
     num_gpus=1,
@@ -104,6 +103,7 @@ class DocReorderingGauge(BaseGauge):
                 instance.documents[:num_docs-start]
 
             yield documents
+
 
     def optimize_instance(
         self,
