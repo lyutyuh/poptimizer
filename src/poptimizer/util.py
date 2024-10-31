@@ -2,9 +2,6 @@ import os
 import argparse
 import dataclasses
 
-import orjson
-import json
-
 from typing import Union, List, Dict, Optional, Any, Tuple
 import logging
 import pathlib
@@ -71,6 +68,9 @@ def format_chat_prompt(
     if model_name in ["lmsys/longchat-13b-16k"]:
         # Longchat models use vicuna template
         conv = get_conversation_template("vicuna")
+    elif "llama-3.1" in model_name.lower():
+        # Llama-3.1 models use llama-3 template
+        conv = get_conversation_template("llama-3")
     elif is_chat_model(model_name):
         try:
             conv = get_conversation_template(model_name)
@@ -273,7 +273,12 @@ def shuffle_one_instance(
                     documents[:num_docs-gold_index]
 
                 yield documents, gold_index
-
+    elif gold_index_position == "one-doc-at-a-time":
+        # <Instruction> <Document> <Question>
+        def get_documents(shuffle_id):
+            distractors = [original_gold_document] + original_distractors
+            for gold_index in range(num_docs):
+                yield distractors[gold_index:gold_index+1], None
 
     for i in range(num_shuffles):
         for documents, gold_index in get_documents(i):
@@ -302,11 +307,11 @@ def shuffle_one_instance(
 
 def get_input_data(
     input_example: Dict,
-    original_gold_document: Document,
     documents: List[Document],
     tokenizer: AutoTokenizer,
     model_name: str,
     max_prompt_length: int,
+    original_gold_document: Optional[Document] = None,
     gold_index: Optional[int] = None,
     prompt_type: str = "ICQ",
     append_answer: bool = True,

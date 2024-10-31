@@ -3,7 +3,6 @@ import argparse
 import dataclasses
 
 import orjson
-import json
 
 import logging
 import pathlib
@@ -281,7 +280,7 @@ def runner(
     )
     # Create directory for output path if it doesn't exist.
     pathlib.Path(output_file).parent.mkdir(parents=True, exist_ok=True)
-    with xopen(output_file, "w") as f:
+    with xopen(output_file, "wb") as f:
         # read input data
         for i in trange(0, len(prompts), prompt_queue_size):
             seg_prompts = prompts[i:i + prompt_queue_size]
@@ -312,6 +311,6 @@ def runner(
 
                 example.update(logprob)
                 example.update(prompt)
-                f.write(json.dumps(example) + "\n")
+                f.write(orjson.dumps(example) + b"\n")
 
             del seg_raw_responses, seg_responses, seg_logprobs
