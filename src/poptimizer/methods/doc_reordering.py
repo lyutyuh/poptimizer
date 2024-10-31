@@ -3,7 +3,7 @@ from vllm import LLM, SamplingParams
 from collections import defaultdict
 
 import torch
-from poptimizer.methods.base import BaseGauge, RAGInstance
+from poptimizer.methods.base import BaseGauge, RAGInstance, init_vllm
 from poptimizer.util import get_qa_prompt
 
 import logging
@@ -13,46 +13,6 @@ import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def init_vllm(
-    model_name,
-    num_gpus=1,
-    gpu_memory_utilization=0.6,
-    max_prompt_length=4096,
-    torch_dtype=torch.bfloat16,
-    seed=42
-):
-    extra_kw = {}
-    if model_name.startswith("meta-llama/Meta-Llama-3.1"):
-        # Currently, Llama-3.1 needs extra parameters to work properly with VLLM
-        # as of VLLM 0.5.1
-        extra_kw["rope_scaling"] = {
-            "type": "yarn",
-            "factor": 8.0,
-            'original_max_position_embeddings': 8192
-        }
-
-    logger.info(
-        f"Initializing model {model_name} with {num_gpus} GPUs with vllm"
-    )
-    # Initialize vllm model
-    model = LLM(
-        model=model_name,
-        tensor_parallel_size=num_gpus,
-        gpu_memory_utilization=gpu_memory_utilization,
-        dtype=torch_dtype,
-        distributed_executor_backend="mp",
-        enforce_eager=True,
-        trust_remote_code=True,
-        max_num_batched_tokens=max_prompt_length,
-        max_model_len=max_prompt_length,
-        seed=seed,
-        disable_custom_all_reduce=True,
-        **extra_kw
-    )
-    logger.info(f"Loaded model {model_name}")
-    return model
 
 
 class DocReorderingGauge(BaseGauge):

@@ -3,7 +3,7 @@ from vllm import LLM, SamplingParams
 from collections import defaultdict
 
 import torch
-from poptimizer.methods.base import BaseGauge, RAGInstance
+from poptimizer.methods.base import BaseGauge, RAGInstance, init_vllm
 from poptimizer.util import get_qa_prompt
 
 import logging
